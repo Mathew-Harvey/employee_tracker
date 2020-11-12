@@ -1,5 +1,5 @@
 # Employee Database
-![GitHub followers](https://img.shields.io/github/followers/Mathew Harvey?style=social)
+![GitHub followers](https://img.shields.io/github/followers/mathew-harvey?style=social)
 
 ![License type](https://img.shields.io/badge/License-MIT-Blue)
 
