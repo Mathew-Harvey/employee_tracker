@@ -1,32 +1,18 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
-// create the connection information for the sql database
 var connection = mysql.createConnection({
-    host: "localhost",
-
-    // Your port; if not 3306
-    port: 3306,
-
-    // Your username
+    host: "localhost",  
+    port: 3306,    
     user: "root",
-
-    // Your password
     password: "me2penders2000",
     database: "employee_trackerDB"
 });
 
-
-
-
-// connect to the mysql server and sql database
 connection.connect(function (err) {
     if (err) throw err;
-    // run the start function after the connection is made to prompt the user
     start();
 });
-
-// function which prompts the user for what action they should take
 function start() {
     console.log("\n")
 
@@ -52,11 +38,10 @@ function start() {
         .prompt({
             name: "ChoiceType",
             type: "list",
-            message: "Would you like to [VIEW], [ADD]  or [UPDATE] an employee, department or role?",
-            choices: ["VIEW", "ADD", "UPDATE", "EXIT"]
+            message: "Would you like to [VIEW], [ADD], [DELETE] or [UPDATE] an employee, department or role?",
+            choices: ["VIEW", "ADD", "DELETE", "UPDATE", "EXIT"]
         })
-        .then(function (answer) {
-            // based on their answer, either call the bid or the post functions
+        .then(function (answer) {   
             if (answer.ChoiceType === "VIEW") {
                 selectBy_VIEW();
             }
@@ -66,6 +51,9 @@ function start() {
             else if (answer.ChoiceType === "UPDATE") {
                 selectBy_UPDATE();
             }
+            else if (answer.ChoiceType === "DELETE") {
+                selectBy_DELETE();
+            }
             else {
                 connection.end();
             }
@@ -74,20 +62,20 @@ function start() {
 
 function returnStart() {
     inquirer
-    .prompt ({
-        name: "returnStart",
-        type: "list",
-        message: "Would you like to return the the start menu?",
-        choices: ["YES", "NO"]
-    })
-    .then(function (answer) {
-        if(answer.returnStart === "YES") {
-            start();        
-        }
-        else {
-            return
-        };
-    });
+        .prompt({
+            name: "returnStart",
+            type: "list",
+            message: "Would you like to return the the start menu?",
+            choices: ["YES", "NO"]
+        })
+        .then(function (answer) {
+            if (answer.returnStart === "YES") {
+                start();
+            }
+            else {
+                selectBy_VIEW();
+            };
+        });
 };
 
 function selectBy_VIEW() {
@@ -99,7 +87,6 @@ function selectBy_VIEW() {
             choices: ["EMPLOYEE", "DEPARTMENT", "ROLE", "BACK"]
         })
         .then(function (answer) {
-            // based on their answer, either call the bid or the post functions
             if (answer.ChoiceWhoView === "DEPARTMENT") {
                 viewDepartment();
             }
@@ -109,7 +96,8 @@ function selectBy_VIEW() {
             else if (answer.ChoiceWhoView === "ROLE") {
                 viewRole();
             }
-            else {
+            else if (answer.ChoiceWhoView === "BACK") {
+                returnStart();
             }
         });
 }
@@ -122,8 +110,7 @@ function selectBy_ADD() {
             message: "Would you like to ADD an [EMPLOYEE], [DEPARTMENT] or [ROLE] ?",
             choices: ["EMPLOYEE", "DEPARTMENT", "ROLE", "BACK"]
         })
-        .then(function (answer) {
-            // based on their answer, either call the bid or the post functions
+        .then(function (answer) {  
             if (answer.ChoiceWhoAdd === "DEPARTMENT") {
                 addDepartment();
             }
@@ -144,19 +131,12 @@ function selectBy_UPDATE() {
         .prompt({
             name: "ChoiceWhoUpdate",
             type: "list",
-            message: "Would you like to UPDATE an [EMPLOYEE], [DEPARTMENT] or [ROLE] ?",
-            choices: ["EMPLOYEE", "DEPARTMENT", "ROLE", "BACK"]
+            message: "Would you like to UPDATE an EMPLOYEE'S ROLE [YES] or [NO]?",
+            choices: ["YES", "NO"],
         })
-        .then(function (answer) {
-            // based on their answer, either call the bid or the post functions
-            if (answer.ChoiceWhoUpdate === "DEPARTMENT") {
-                updateDepartment();
-            }
-            else if (answer.ChoiceWhoUpdate === "EMPLOYEE") {
+        .then(function (answer) {   
+            if (answer.ChoiceWhoUpdate === "YES") {
                 updateEmployee();
-            }
-            else if (answer.ChoiceWhoUpdate === "ROLE") {
-                updateRole();
             }
             else {
                 start();
@@ -164,38 +144,155 @@ function selectBy_UPDATE() {
         });
 }
 
+function selectBy_DELETE() {
+    inquirer
+        .prompt({
+            name: "ChoiceWhoAdd",
+            type: "list",
+            message: "Would you like to DELETE an [EMPLOYEE], [DEPARTMENT] or [ROLE] ?",
+            choices: ["EMPLOYEE", "DEPARTMENT", "ROLE", "BACK"]
+        })
+        .then(function (answer) {  
+            if (answer.ChoiceWhoAdd === "DEPARTMENT") {
+                deleteDepartment();
+            }
+            else if (answer.ChoiceWhoAdd === "EMPLOYEE") {
+                deleteEmployee();
+            }
+            else if (answer.ChoiceWhoAdd === "ROLE") {
+                deleteRole();
+            }
+            else {
+                start();
+            }
+        });
+}
+
+
 function viewDepartment() {
     console.log("View all Departments...\n");
-    connection.query("SELECT * FROM department", function(err, res) {
-      if (err) throw err;
-      // Log all results of the SELECT statement
-      console.log(res);
-      returnStart();
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("\n")
+            console.log(
+                "   Department: " +
+                res[i].name);
+        }
+        console.log("-----------------------------------");
+        returnStart();
     });
-  }
 
-  function  viewEmployee() {
+}
+
+function viewDepartmentNoReturn() {
+    console.log("View all Departments...\n");
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("\n")
+            console.log(
+                "   Department: " +
+                res[i].name);
+        }
+        console.log("-----------------------------------");
+       return;
+    });
+
+}
+
+
+function viewEmployee() {
     console.log("View all Employees...\n");
-    connection.query("SELECT * FROM employee", function(err, res) {
-      if (err) throw err;
-      // Log all results of the SELECT statement
-      console.log(res);
-      returnStart();
+    console.log("-----------------------------------");
+    var query = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, manager_id from employee inner join role ON (employee.role_id = role.id)"
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("\n")
+            console.log(
+                "   ID: " +
+                res[i].id +
+                "| FIRST NAME: " +
+                res[i].first_name +
+                "| LAST NAME: " +
+                res[i].last_name +
+                "| ROLE: " +
+                res[i].title +
+                "| Salary: " +
+                res[i].salary);
+        }
+        console.log("-----------------------------------");
+        returnStart();
     });
-  }
+}
 
-  function  viewRole() {
-    console.log("View all Roles...\n");
-    connection.query("SELECT * FROM role", function(err, res) {
-      if (err) throw err;
-      // Log all results of the SELECT statement
-      console.log(res);
-      returnStart();
+function viewEmployeeNoReturn() {
+    console.log("View all Employees...\n");
+    console.log("-----------------------------------");
+    var query = "SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, manager_id from employee inner join role ON (employee.role_id = role.id)"
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("\n")
+            console.log(
+                "   ID: " +
+                res[i].id +
+                "| FIRST NAME: " +
+                res[i].first_name +
+                "| LAST NAME: " +
+                res[i].last_name +
+                "| ROLE: " +
+                res[i].title +
+                "| Salary: " +
+                res[i].salary);
+        }
+        console.log("-----------------------------------");
+        return;
     });
-  }
+}
+
+function viewRole() {
+    console.log("View all Roles...\n");
+    connection.query("SELECT * FROM role", function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("\n")
+            console.log(
+                "   ID: " +
+                res[i].id +
+                "| ROLE: " +
+                res[i].title +
+                "| SALARY: " +
+                res[i].salary
+            );
+        }
+        console.log("-----------------------------------");
+        returnStart();
+    });
+}
+
+function viewRoleNoReturn() {
+    console.log("View all Roles...\n");
+    connection.query("SELECT * FROM role", function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log("\n")
+            console.log(
+                "   ID: " +
+                res[i].id +
+                "| ROLE: " +
+                res[i].title +
+                "| SALARY: " +
+                res[i].salary
+            );
+        }
+        console.log("-----------------------------------");
+       return;
+    });
+}
 
 function addDepartment() {
-    // prompt for info about the item being put up for auction
     inquirer
         .prompt([
             {
@@ -205,7 +302,6 @@ function addDepartment() {
             }
         ])
         .then(function (answer) {
-            // when finished prompting, insert a new item into the db with that info
             connection.query(
                 "INSERT INTO department SET ?",
                 {
@@ -213,19 +309,19 @@ function addDepartment() {
                 },
                 function (err) {
                     if (err) throw err;
+                    console.log("-----------------------------------");
                     console.log("A department has been created");
-                    // re-prompt the user for if they want to bid or post
-                    returnStart();
+                    console.log("-----------------------------------");
+                    viewDepartment();
                 }
             );
         });
 }
 
 function addEmployee() {
-    // prompt for info about the item being put up for auction
     inquirer
         .prompt([
-        
+
             {
                 name: "first_name",
                 type: "input",
@@ -239,7 +335,7 @@ function addEmployee() {
             {
                 name: "role_id",
                 type: "input",
-                message: "Please enter the number that corrisponds to the role ie. 0 = no role defined, 1 = graduate, 2 = mid level, 3 = senior, 4 = manager"
+                message: "Please enter the number that corrisponds to the role ie. 0 = no role defined, 1 = Analyst, 2 = Communications Associate, 3 = Social Media Manager, 4 = Director"
             },
             {
                 name: "manager_id",
@@ -248,11 +344,9 @@ function addEmployee() {
             },
         ])
         .then(function (answer) {
-            // when finished prompting, insert a new item into the db with that info
             connection.query(
                 "INSERT INTO employee SET ?",
                 {
-                   
                     first_name: answer.first_name,
                     last_name: answer.last_name,
                     role_id: answer.role_id || 0,
@@ -260,22 +354,22 @@ function addEmployee() {
                 },
                 function (err) {
                     if (err) throw err;
-                    console.log("A employee has been created and assigned to a role and a manager");
-                    // re-prompt the user for if they want to bid or post
-                    returnStart();
+                    console.log("-----------------------------------");
+                    console.log("An employee has been created and assigned to a role and a manager");
+                    console.log("-----------------------------------");
+                    viewEmployee();
                 }
             );
         });
 }
 
 function addRole() {
-    // prompt for info about the item being put up for auction
     inquirer
         .prompt([
             {
                 name: "title",
                 type: "input",
-                message: "Please type the title of the role you would like to add (eg - graduate or engineer)"
+                message: "Please enter the number that corrisponds to the role you wish to add: 0 = no role, 1 = Analyst, 2 = Communications Associate, 3 = Social Media Manager, 4 = Director"
             },
             {
                 name: "salary",
@@ -285,11 +379,10 @@ function addRole() {
             {
                 name: "department_id",
                 type: "input",
-                message: "Please enter the number that corrisponds to the departement that would house this role ie. 0 = fits in no department, 1 = fits in administration, 2 = fits in engineering, 3 = fits in management"
+                message: "Please enter the number that corrisponds to the departement that would house this role ie. 0 = fits in no department, 1 = HR, 2 = Engineering, 3 = Management, 4 = Administration"
             },
         ])
-        .then(function (answer) {
-            // when finished prompting, insert a new item into the db with that info
+        .then(function (answer) { 
             connection.query(
                 "INSERT INTO role SET ?",
                 {
@@ -299,142 +392,136 @@ function addRole() {
                 },
                 function (err) {
                     if (err) throw err;
+                    console.log("-----------------------------------");
                     console.log("A role has been created and assigned to a department");
-                    // re-prompt the user for if they want to bid or post
+                    console.log("-----------------------------------");             
+                    viewRole();
+                }
+            );
+        });
+}
+
+function deleteDepartment() {
+    viewDepartmentNoReturn();
+    inquirer
+        .prompt([
+            {
+                name: "department",
+                type: "input",
+                message: "Please type the name of the department you would like to delete"
+            }
+        ])
+        .then(function (answer) {
+            connection.query(
+                "DELETE FROM department WHERE ?",
+                {
+                    name: answer.department,
+                },
+                function (err) {
+                    if (err) throw err;
+                    console.log("-----------------------------------");
+                    console.log("A department has been deleted");
+                    console.log("-----------------------------------");
                     returnStart();
                 }
             );
         });
 }
 
+function deleteEmployee() {
+    viewEmployeeNoReturn();
+    inquirer
+        .prompt([
 
+            {
+                name: "first_name",
+                type: "input",
+                message: "Please type the first name of the employee you would like to delete."
+            }             
+        ])
+        .then(function (answer) {
+            connection.query(
+                "DELETE FROM employee WHERE ?",
+                {
+                    first_name: answer.first_name                                  
+                },
+                function (err) {
+                    if (err) throw err;
+                    console.log("-----------------------------------");
+                    console.log("An employee has been deleted");
+                    console.log("-----------------------------------");
+                    returnStart();
+                }
+            );
+        });
+};
 
+function deleteRole() {
+    viewRoleNoReturn();
+    inquirer
+        .prompt([
 
+            {
+                name: "title",
+                type: "input",
+                message: "Please enter the number that corrisponds to the role you wish to DELETE: 0 = no role, 1 = Analyst, 2 = Communications Associate, 3 = Social Media Manager, 4 = Director"
+            }     
+        ])
+        .then(function (answer) {
+            connection.query(
+                "DELETE FROM role WHERE ?",
+                {
+                    id: answer.title                                  
+                },
+                function (err) {
+                    if (err) throw err;
+                    console.log("-----------------------------------");
+                    console.log("An role has been deleted");
+                    console.log("-----------------------------------");
+                    returnStart();
+                }
+            );
+        });
+}
 
+function updateEmployee() {  
+    viewEmployeeNoReturn();
+    console.log("In this menu you can update the role of any employee. To begin, please review the current employee's below\n");
+    inquirer
+        .prompt([
+            {
+                name: "who_first",
+                type: "input",
+                message: "Please type the FIRST name of the employee you wish to update:"
+            },    
+            {
+                name: "new_role",
+                type: "input",
+                message: "Please enter the number that corrisponds to the new role you wish to assign to the selected employee: 0 = no role, 1 = Analyst, 2 = Communications Associate, 3 = Social Media Manager, 4 = Director"
+            }
+        ])
+        .then(function (answer) {
+            var query = "SELECT first_name, last_name, role_id FROM employee"
+            connection.query(
+                "UPDATE employee SET ? WHERE ?",
+                [
+                     {
+                        role_id: answer.new_role
+                    },
+                    {
+                        first_name: answer.who_first
+                    }        
+                  
+                ],
+                function (err, res) {
+                    if (err) throw err;
+                    console.log("-----------------------------------");
+                    console.log("An employee's Role has been updated");
+                    console.log("-----------------------------------");
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // function to handle posting new items up for auction
-// function postAuction() {
-//     // prompt for info about the item being put up for auction
-//     inquirer
-//         .prompt([
-//             {
-//                 name: "item",
-//                 type: "input",
-//                 message: "What is the item you would like to submit?"
-//             },
-//             {
-//                 name: "category",
-//                 type: "input",
-//                 message: "What category would you like to place your auction in?"
-//             },
-//             {
-//                 name: "startingBid",
-//                 type: "input",
-//                 message: "What would you like your starting bid to be?",
-//                 validate: function (value) {
-//                     if (isNaN(value) === false) {
-//                         return true;
-//                     }
-//                     return false;
-//                 }
-//             }
-//         ])
-//         .then(function (answer) {
-//             // when finished prompting, insert a new item into the db with that info
-//             connection.query(
-//                 "INSERT INTO auctions SET ?",
-//                 {
-//                     item_name: answer.item,
-//                     category: answer.category,
-//                     starting_bid: answer.startingBid || 0,
-//                     highest_bid: answer.startingBid || 0
-//                 },
-//                 function (err) {
-//                     if (err) throw err;
-//                     console.log("Your auction was created successfully!");
-//                     // re-prompt the user for if they want to bid or post
-//                     start();
-//                 }
-//             );
-//         });
-// }
-
-// function bidAuction() {
-//     // query the database for all items being auctioned
-//     connection.query("SELECT * FROM auctions", function (err, results) {
-//         if (err) throw err;
-//         // once you have the items, prompt the user for which they'd like to bid on
-//         inquirer
-//             .prompt([
-//                 {
-//                     name: "choice",
-//                     type: "rawlist",
-//                     choices: function () {
-//                         var choiceArray = [];
-//                         for (var i = 0; i < results.length; i++) {
-//                             choiceArray.push(results[i].item_name);
-//                         }
-//                         return choiceArray;
-//                     },
-//                     message: "What auction would you like to place a bid in?"
-//                 },
-//                 {
-//                     name: "bid",
-//                     type: "input",
-//                     message: "How much would you like to bid?"
-//                 }
-//             ])
-//             .then(function (answer) {
-//                 // get the information of the chosen item
-//                 var chosenItem;
-//                 for (var i = 0; i < results.length; i++) {
-//                     if (results[i].item_name === answer.choice) {
-//                         chosenItem = results[i];
-//                     }
-//                 }
-
-//                 // determine if bid was high enough
-//                 if (chosenItem.highest_bid < parseInt(answer.bid)) {
-//                     // bid was high enough, so update db, let the user know, and start over
-//                     connection.query(
-//                         "UPDATE auctions SET ? WHERE ?",
-//                         [
-//                             {
-//                                 highest_bid: answer.bid
-//                             },
-//                             {
-//                                 id: chosenItem.id
-//                             }
-//                         ],
-//                         function (error) {
-//                             if (error) throw err;
-//                             console.log("Bid placed successfully!");
-//                             start();
-//                         }
-//                     );
-//                 }
-//                 else {
-//                     // bid wasn't high enough, so apologize and start over
-//                     console.log("Your bid was too low. Try again...");
-//                     start();
-//                 }
-//             });
-//     });
-// }
+                    returnStart();
+                    
+                }
+            )
+        })
+}
