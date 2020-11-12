@@ -36,7 +36,7 @@ Mathew Harvey
 Please feel free to contact me with any questions you may have: 
 
 
-### GitHub: https://github.com/Mathew Harvey
+### GitHub: https://github.com/Mathew-Harvey
 
 ### Email: mathewharvey@gmail.com
 
