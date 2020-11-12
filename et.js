@@ -522,6 +522,6 @@ function updateEmployee() {
                     returnStart();
                     
                 }
-            )
-        })
-}
+            );
+        });
+};
